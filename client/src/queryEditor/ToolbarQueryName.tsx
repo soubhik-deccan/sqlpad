@@ -31,22 +31,23 @@ function ToolbarQueryName() {
     }
   }
 
-  return (
-    <Tooltip label={tooltipLabel}>
-      <Button
-        className="truncate"
-        variant="primary-ghost"
-        style={{ fontSize: 18 }}
-        onClick={toggleShowQueryModal}
-      >
-        <div className="truncate" style={{ maxWidth: 500 }}>
-          {queryName || 'New unsaved query'}
-        </div>
-        {unsavedChanges && canWrite && '*'}
-        {shared && <SharedIcon size={18} style={sharedIconStyle} />}
-      </Button>
-    </Tooltip>
-  );
+  // return (
+  //   <Tooltip label={tooltipLabel}>
+  //     <Button
+  //       className="truncate"
+  //       variant="primary-ghost"
+  //       style={{ fontSize: 18 }}
+  //       onClick={toggleShowQueryModal}
+  //     >
+  //       <div className="truncate" style={{ maxWidth: 500 }}>
+  //         {queryName || 'New unsaved query'}
+  //       </div>
+  //       {unsavedChanges && canWrite && '*'}
+  //       {shared && <SharedIcon size={18} style={sharedIconStyle} />}
+  //     </Button>
+  //   </Tooltip>
+  // );
+  return null;
 }
 
 export default React.memo(ToolbarQueryName);

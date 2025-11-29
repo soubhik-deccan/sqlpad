@@ -173,6 +173,16 @@ export const initEditor = async (
           initialConnectionId = selectedConnection?.id;
         }
       }
+
+      const qsDefaultDB = qs.defaultDB;
+      if (qsDefaultDB) {
+        const selectedConnection = connections.find(
+          (c) => c.id === qsDefaultDB
+        );
+        if (selectedConnection?.id) {
+          initialConnectionId = selectedConnection?.id;
+        }
+      }
     }
 
     const { focusedSessionId } = getState();

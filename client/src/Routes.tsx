@@ -1,10 +1,11 @@
 import React from 'react';
 import {
-  BrowserRouter as Router,
   Redirect,
   Route,
+  BrowserRouter as Router,
   Switch,
 } from 'react-router-dom';
+import { UrlAuthHandler } from './components/UrlAuthHandler';
 import PasswordReset from './pages/PasswordReset';
 import PasswordResetRequested from './pages/PasswordResetRequested';
 import QueryChartOnly from './pages/QueryChartOnly';
@@ -28,6 +29,7 @@ function Routes() {
   if (!currentUser) {
     return (
       <Router basename={config.baseUrl}>
+        <UrlAuthHandler />
         <Switch>
           <Route exact path="/signin" children={<SignIn />} />
           <Route exact path="/signup" children={<SignUp />} />
