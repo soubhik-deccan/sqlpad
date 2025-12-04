@@ -36,7 +36,7 @@ async function fetchJson<DataT = any>(
   const BASE_URL = apiBaseUrl();
   const opts: RequestInit = {
     method: method.toUpperCase(),
-    credentials: 'same-origin',
+    credentials: 'include',
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',

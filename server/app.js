@@ -1,48 +1,48 @@
-import fs from 'fs';
-import path from 'path';
+import bodyParser from 'body-parser';
+import RedisStore from 'connect-redis';
+import SequelizeStoreFactory from 'connect-session-sequelize';
 import express from 'express';
+import expressPinoLogger from 'express-pino-logger';
+import session from 'express-session';
+import fs from 'fs';
 import helmet from 'helmet';
+import MemoryStoreFactory from 'memorystore';
+import passport from 'passport';
+import path from 'path';
 import pino from 'pino';
 import redis from 'redis';
-import session from 'express-session';
-import FileStoreFactory from 'session-file-store';
-import MemoryStoreFactory from 'memorystore';
-import SequelizeStoreFactory from 'connect-session-sequelize';
-import RedisStore from 'connect-redis';
-import appLog from './lib/app-log.js';
-import Webhooks from './lib/webhooks.js';
-import bodyParser from 'body-parser';
 import favicon from 'serve-favicon';
-import passport from 'passport';
+import FileStoreFactory from 'session-file-store';
 import authStrategies from './auth-strategies/index.js';
-import sessionlessAuth from './middleware/sessionless-auth.js';
+import appLog from './lib/app-log.js';
 import ResponseUtils from './lib/response-utils.js';
-import expressPinoLogger from 'express-pino-logger';
-import serverDirname from './server-dirname.cjs';
-import routePasswordReset from './routes/password-reset.js';
-import routeSignout from './routes/signout.js';
-import routeSignup from './routes/signup.js';
-import routeSignin from './routes/signin.js';
-import routeGoogleAuth from './routes/google-auth.js';
+import Webhooks from './lib/webhooks.js';
+import sessionlessAuth from './middleware/sessionless-auth.js';
+import routeApp from './routes/app.js';
 import routeAuthOidc from './routes/auth-oidc.js';
-import routeSaml from './routes/saml.js';
-import routeStatementResults from './routes/statement-results.js';
-import routeQueries from './routes/queries.js';
-import routeDrivers from './routes/drivers.js';
-import routeUsers from './routes/users.js';
-import routeConnections from './routes/connections.js';
+import routeBatches from './routes/batches.js';
 import routeConnectionAccesses from './routes/connection-accesses.js';
 import routeConnectionClients from './routes/connection-clients.js';
 import routeConnectionSchema from './routes/connection-schema.js';
-import routeTestConnection from './routes/test-connection.js';
-import routeQueryHistory from './routes/query-history.js';
-import routeSchemaInfo from './routes/schema-info.js';
-import routeTags from './routes/tags.js';
+import routeConnections from './routes/connections.js';
+import routeDrivers from './routes/drivers.js';
 import routeFormatSql from './routes/format-sql.js';
+import routeGoogleAuth from './routes/google-auth.js';
+import routePasswordReset from './routes/password-reset.js';
+import routeQueries from './routes/queries.js';
+import routeQueryHistory from './routes/query-history.js';
+import routeSaml from './routes/saml.js';
+import routeSchemaInfo from './routes/schema-info.js';
 import routeServiceTokens from './routes/service-tokens.js';
-import routeBatches from './routes/batches.js';
+import routeSignin from './routes/signin.js';
+import routeSignout from './routes/signout.js';
+import routeSignup from './routes/signup.js';
+import routeStatementResults from './routes/statement-results.js';
 import routeStatements from './routes/statements.js';
-import routeApp from './routes/app.js';
+import routeTags from './routes/tags.js';
+import routeTestConnection from './routes/test-connection.js';
+import routeUsers from './routes/users.js';
+import serverDirname from './server-dirname.cjs';
 
 const FileStore = FileStoreFactory(session);
 const MemoryStore = MemoryStoreFactory(session);
@@ -139,17 +139,31 @@ async function makeApp(config, models) {
 
   const cookieMaxAgeMs = parseInt(config.get('sessionMinutes'), 10) * 60 * 1000;
   const cookieSameSite = config.get('sessionCookieSameSite');
+  let cookieSecure = config.get('cookieSecure');
+
+  // When SameSite=None, Secure must be true (browser requirement for cross-site cookies)
+  // This is necessary for iframe embedding across different origins
+  if (cookieSameSite === 'None' || cookieSameSite === 'none') {
+    cookieSecure = true;
+    if (!config.get('cookieSecure')) {
+      appLog.warn(
+        'Cookie SameSite=None requires Secure=true. Automatically enabling secure cookies for iframe compatibility.'
+      );
+    }
+  }
 
   const sessionOptions = {
     saveUninitialized: false,
     resave: true,
     rolling: true,
-    cookie: { maxAge: cookieMaxAgeMs, sameSite: cookieSameSite },
+    cookie: {
+      maxAge: cookieMaxAgeMs,
+      sameSite: cookieSameSite,
+      secure: cookieSecure,
+    },
     secret: config.get('cookieSecret'),
     name: config.get('cookieName'),
   };
-
-  sessionOptions.cookie.secure = config.get('cookieSecure');
 
   const sessionStore = config.get('sessionStore').toLowerCase();
 
