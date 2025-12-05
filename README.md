@@ -30,5 +30,5 @@ The most recently used documentation site's astro code is located under `/docs` 
 For instructions on installing/running SQLPad from git repo see [DEVELOPER-GUIDE.md](https://github.com/sqlpad/sqlpad/blob/master/DEVELOPER-GUIDE.md)
 
 ## License
-
+TEST
 MIT
