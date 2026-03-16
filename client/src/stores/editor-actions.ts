@@ -733,6 +733,16 @@ export const setQueryText = (queryText: string) => {
   setSession(focusedSessionId, { queryText, unsavedChanges: true });
 };
 
+export const addSelectFromTableToEditor = (tableId: string) => {
+  const { focusedSessionId } = getState();
+  const { queryId, queryText } = getState().getFocusedSession();
+  const trimmed = (queryText || '').trim();
+  const append = `select * from ${tableId}`;
+  const newText = trimmed ? `${trimmed}\n\n${append}` : append;
+  setLocalQueryText(queryId, newText);
+  setSession(focusedSessionId, { queryText: newText, unsavedChanges: true });
+};
+
 export const setQueryName = (queryName: string) => {
   const { focusedSessionId } = getState();
   setSession(focusedSessionId, { queryName, unsavedChanges: true });

@@ -19,7 +19,11 @@ import Sidebar from '../common/Sidebar';
 import SpinKitCube from '../common/SpinKitCube';
 import Text from '../common/Text';
 import Tooltip from '../common/Tooltip';
-import { loadSchema, toggleSchemaItem } from '../stores/editor-actions';
+import {
+  addSelectFromTableToEditor,
+  loadSchema,
+  toggleSchemaItem,
+} from '../stores/editor-actions';
 import {
   useSchemaState,
   useSessionConnectionId,
@@ -173,6 +177,13 @@ function SchemaSidebar() {
       }
     }
 
+    function handleDoubleClick(event: React.MouseEvent) {
+      if (row.type === 'table') {
+        event.stopPropagation();
+        addSelectFromTableToEditor(row.id);
+      }
+    }
+
     // TODO either switch to button or improve aria for clicking on li
     return (
       <li
@@ -181,6 +192,7 @@ function SchemaSidebar() {
         className={classNames.join(' ')}
         style={{ ...style, paddingLeft: indentationPadding }}
         onClick={handleClick}
+        onDoubleClick={handleDoubleClick}
       >
         {icon}
         {row.name}
