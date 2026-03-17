@@ -8,7 +8,7 @@ import {
 import OpenIcon from 'mdi-react/MenuDownIcon';
 import ClosedIcon from 'mdi-react/MenuRightIcon';
 import RefreshIcon from 'mdi-react/RefreshIcon';
-import React, { ChangeEvent, ReactNode, useState } from 'react';
+import React, { ChangeEvent, ReactNode, useRef, useState } from 'react';
 import Measure from 'react-measure';
 import { FixedSizeList as List } from 'react-window';
 import Divider from '../common/Divider';
@@ -97,6 +97,13 @@ function SchemaSidebar() {
 
   const expanded = useSessionSchemaExpanded(connectionId);
   const { loading, connectionSchema, error } = useSchemaState(connectionId);
+  const tableClickPendingRef = useRef<{
+    rowId: string;
+    timeoutId: ReturnType<typeof setTimeout>;
+    row: { id: string };
+  } | null>(null);
+
+  const DOUBLE_CLICK_MS = 220;
 
   const handleRefreshClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -172,15 +179,26 @@ function SchemaSidebar() {
     }
 
     function handleClick() {
+      if (row.type === 'table') {
+        const pending = tableClickPendingRef.current;
+        if (pending && pending.rowId === row.id) {
+          clearTimeout(pending.timeoutId);
+          tableClickPendingRef.current = null;
+          addSelectFromTableToEditor(row.id);
+          return;
+        }
+        if (pending) clearTimeout(pending.timeoutId);
+        const timeoutId = setTimeout(() => {
+          if (tableClickPendingRef.current?.rowId === row.id) {
+            toggleSchemaItem(connectionId, row);
+            tableClickPendingRef.current = null;
+          }
+        }, DOUBLE_CLICK_MS);
+        tableClickPendingRef.current = { rowId: row.id, timeoutId, row };
+        return;
+      }
       if (expandable) {
         toggleSchemaItem(connectionId, row);
-      }
-    }
-
-    function handleDoubleClick(event: React.MouseEvent) {
-      if (row.type === 'table') {
-        event.stopPropagation();
-        addSelectFromTableToEditor(row.id);
       }
     }
 
@@ -192,7 +210,6 @@ function SchemaSidebar() {
         className={classNames.join(' ')}
         style={{ ...style, paddingLeft: indentationPadding }}
         onClick={handleClick}
-        onDoubleClick={handleDoubleClick}
       >
         {icon}
         {row.name}
@@ -299,9 +316,9 @@ function SchemaSidebar() {
             value={formatIdentifiers(schemaItemId, '[]')}
           />
 
-          {/* 
-            This menu is hidden and moves around based on where context-menu click happens 
-            This is hacky but works! reach-ui does not expose the menu components 
+          {/*
+            This menu is hidden and moves around based on where context-menu click happens
+            This is hacky but works! reach-ui does not expose the menu components
             in a way that allows them to be used for context menu
           */}
           <Menu>
