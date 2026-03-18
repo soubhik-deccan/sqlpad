@@ -21,7 +21,9 @@ import Text from '../common/Text';
 import Tooltip from '../common/Tooltip';
 import {
   addSelectFromTableToEditor,
+  connectConnectionClient,
   loadSchema,
+  runQuery,
   toggleSchemaItem,
 } from '../stores/editor-actions';
 import {
@@ -185,6 +187,7 @@ function SchemaSidebar() {
           clearTimeout(pending.timeoutId);
           tableClickPendingRef.current = null;
           addSelectFromTableToEditor(row.id);
+          connectConnectionClient().then(() => runQuery());
           return;
         }
         if (pending) clearTimeout(pending.timeoutId);

@@ -3,6 +3,7 @@
   "version": "7.5.7",
   "private": true,
   "devDependencies": {
+    "concurrently": "^9.2.1",
     "husky": "^9.0.6",
     "lint-staged": "^15.2.0",
     "prettier": "^2.6.2"
@@ -16,6 +17,9 @@
     ]
   },
   "scripts": {
+    "dev": "concurrently --names \"server,client\" \"yarn run dev:server\" \"yarn run dev:client\"",
+    "dev:server": "yarn --cwd server start",
+    "dev:client": "yarn --cwd client start",
     "fixlint": "npm run fixlint --prefix client && npm run fixlint --prefix server && prettier --write \"**/*.js\"",
     "lint": "npm run lint --prefix client && npm run lint --prefix server && prettier --check \"**/*.js\"",
     "prepare": "husky",

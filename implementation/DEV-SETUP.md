@@ -81,10 +81,56 @@ The app will be at **http://localhost:3010/sqlpad** (or the port set by `SQLPAD_
 
 ---
 
+## 4. Run both (server + client)
+
+**Option A — one command (from project root)**
+
+```bash
+yarn dev
+```
+
+Runs server and client together in one terminal via `concurrently`. Stop with Ctrl+C.
+
+**Option B — two terminals**
+
+**Terminal 1 — server**
+
+From project root:
+
+```bash
+cd server && yarn start
+```
+
+Or from **`server`**:
+
+```bash
+yarn start
+```
+
+**Terminal 2 — client**
+
+From project root:
+
+```bash
+cd client && yarn start
+```
+
+Or from **`client`**:
+
+```bash
+yarn start
+```
+
+- **Server:** http://localhost:3010 (API + base URL `/sqlpad`).
+- **Client:** Vite dev server (e.g. http://localhost:5173); set the app to use the server base URL if needed (e.g. proxy or `VITE_*` env).
+
+---
+
 ## Quick reference
 
 | Task           | Where                   | Action                                                                            |
 | -------------- | ----------------------- | --------------------------------------------------------------------------------- |
+| Run both       | project root            | `yarn dev` (or **T1:** `cd server && yarn start` · **T2:** `cd client && yarn start`) |
 | Bypass auth    | `server/config.dev.env` | Set `SQLPAD_AUTH_DISABLED = true` and `SQLPAD_AUTH_DISABLED_DEFAULT_ROLE = admin` |
 | Seed local DB  | `server/data/`          | `sqlite3 local.sqlite < seed-local.sql`                                           |
 | Dev DB path    | `server/config.dev.env` | `SQLPAD_CONNECTIONS__devdbdriverid123__filename = "./data/local.sqlite"`          |

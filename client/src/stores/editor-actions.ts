@@ -735,10 +735,8 @@ export const setQueryText = (queryText: string) => {
 
 export const addSelectFromTableToEditor = (tableId: string) => {
   const { focusedSessionId } = getState();
-  const { queryId, queryText } = getState().getFocusedSession();
-  const trimmed = (queryText || '').trim();
-  const append = `select * from ${tableId}`;
-  const newText = trimmed ? `${trimmed}\n\n${append}` : append;
+  const { queryId } = getState().getFocusedSession();
+  const newText = `select * from ${tableId}`;
   setLocalQueryText(queryId, newText);
   setSession(focusedSessionId, { queryText: newText, unsavedChanges: true });
 };
