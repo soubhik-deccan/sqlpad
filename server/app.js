@@ -18,6 +18,7 @@ import appLog from './lib/app-log.js';
 import ResponseUtils from './lib/response-utils.js';
 import Webhooks from './lib/webhooks.js';
 import sessionlessAuth from './middleware/sessionless-auth.js';
+import sqlpadPathRewrite from './middleware/sqlpad-path-rewrite.js';
 import routeApp from './routes/app.js';
 import routeAuthOidc from './routes/auth-oidc.js';
 import routeBatches from './routes/batches.js';
@@ -118,6 +119,9 @@ async function makeApp(config, models) {
   });
 
   app.use(expressPino);
+
+  // Add SQLPad path rewriting middleware
+  app.use(sqlpadPathRewrite);
 
   // Use favicon middleware if favicon exists
   // Thist just loads it and serves from memory
