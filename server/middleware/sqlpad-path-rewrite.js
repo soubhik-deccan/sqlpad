@@ -1,27 +1,22 @@
 /**
  * Middleware to rewrite SQLPad paths
- * Transforms /sqlpad/{session_id} → / and /sqlpad/{session_id}/foo → /foo
+ * Transforms /sqlpad/{version_id} → / and /sqlpad/{version_id}/foo → /foo
  */
 function sqlpadPathRewrite(req, res, next) {
-  const path = req.path;
+  const originalUrl = req.url;
 
-  if (path.startsWith("/sqlpad/")) {
-    const segments = path.split("/").filter(Boolean);
+  if (originalUrl.startsWith("/sqlpad/")) {
+    // Strip /sqlpad/{version_id} prefix, leaving the rest (e.g. /foo or "")
+    // /sqlpad/{version_id}     → /
+    // /sqlpad/{version_id}/foo → /foo
+    const rest = originalUrl.replace(/^\/sqlpad\/[^/]+/, "");
+    const newPath = rest || "/";
 
-    // ['sqlpad', '{session_id}', ...rest]
-
-    let newPath = "/";
-
-    if (segments.length > 2) {
-      newPath = "/" + segments.slice(2).join("/");
-    }
-
-    req.log.info(`Rewriting SQLPad path from ${path} → ${newPath}`);
+    req.log.info(`Rewriting SQLPad path from ${originalUrl} → ${newPath}`);
 
     req.url = newPath;
-    req.path = newPath;
   }
-
+  
   next();
 }
 
