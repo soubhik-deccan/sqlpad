@@ -22,11 +22,17 @@ async function getApp(req, res) {
         }
       : undefined;
 
+  // When accessed via a path-prefixed URL (e.g. /1157/api/app), the
+  // path-rewrite middleware stores the original prefix on req.sqlpadPathPrefix.
+  // Return it as baseUrl so the frontend prefixes all API calls correctly
+  // (e.g. /1157/api/signin instead of /api/signin).
+  const effectiveBaseUrl = req.sqlpadPathPrefix || config.get('baseUrl');
+
   return res.utils.data({
     currentUser,
     config: {
       allowCsvDownload: config.get('allowCsvDownload'),
-      baseUrl: config.get('baseUrl'),
+      baseUrl: effectiveBaseUrl,
       defaultConnectionId: config.get('defaultConnectionId'),
       editorWordWrap: config.get('editorWordWrap'),
       googleAuthConfigured: Boolean(config.googleAuthConfigured()),
