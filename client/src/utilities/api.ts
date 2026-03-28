@@ -19,8 +19,36 @@ import {
   UserSelfUpdate,
 } from '../types';
 import { Links, parseLinkHeader } from '../utilities/parse-link-header';
-import { apiBaseUrl } from './baseUrl';
 import swrFetcher from './swr-fetcher';
+
+// Cached once on first successful extraction so the prefix is never lost
+// if the URL later changes to a path without the ID (e.g. after routing).
+let _sqlpadPrefix: string | null = null;
+
+/**
+ * Returns the /sqlpad/{version_id} prefix for API calls.
+ * Extracted from window.location on the first call and cached in memory
+ * so subsequent calls always return the same value even if the URL changes.
+ *
+ *   /sqlpad/1157/...  →  "/sqlpad/1157"
+ *   /1157/...         →  "/sqlpad/1157"
+ *   /                 →  ""
+ */
+function getSqlpadPrefix(): string {
+  if (_sqlpadPrefix !== null) return _sqlpadPrefix;
+  const path = window.location.pathname;
+  const sqlpadMatch = path.match(/^\/sqlpad\/([^/]+)/);
+  if (sqlpadMatch) {
+    _sqlpadPrefix = `/sqlpad/${sqlpadMatch[1]}`;
+    return _sqlpadPrefix;
+  }
+  const numericMatch = path.match(/^\/(\d+)/);
+  if (numericMatch) {
+    _sqlpadPrefix = `/sqlpad/${numericMatch[1]}`;
+    return _sqlpadPrefix;
+  }
+  return '';
+}
 
 interface FetchResponse<DataT> {
   data?: DataT;
@@ -33,7 +61,7 @@ async function fetchJson<DataT = any>(
   url: any,
   body?: any
 ): Promise<FetchResponse<DataT>> {
-  const BASE_URL = apiBaseUrl();
+  const BASE_URL = getSqlpadPrefix();
   const opts: RequestInit = {
     method: method.toUpperCase(),
     credentials: 'include',
@@ -290,11 +318,6 @@ export const api = {
   },
 
   useAppInfo() {
-    const apiBaseUrlOverride = import.meta.env.VITE_API_BASE_URL_OVERRIDE;
-    if (apiBaseUrlOverride) {
-      apiBaseUrl(import.meta.env.VITE_API_BASE_URL_OVERRIDE);
-    }
-
     return useSWR<AppInfo>('api/app', {
       dedupingInterval: 60000,
       fetcher: async (url: any) => {
