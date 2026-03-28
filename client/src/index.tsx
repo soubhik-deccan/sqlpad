@@ -16,10 +16,22 @@ import baseUrl from './utilities/baseUrl';
 // Derive the /sqlpad/{version_id} prefix from the current URL before any API
 // calls are made. This ensures every request (including early ones like
 // URL-based auth) is sent to the correct path-prefixed route on the backend.
-const sqlpadPrefixMatch = window.location.pathname.match(/^(\/sqlpad\/[^/]+)/);
-if (sqlpadPrefixMatch) {
-  baseUrl(sqlpadPrefixMatch[1]);
-}
+//
+// Supports both URL forms and normalises to /sqlpad/{version_id}:
+//   /sqlpad/1157/...  →  /sqlpad/1157
+//   /1157/...         →  /sqlpad/1157  (numeric-only prefix)
+(function initBaseUrl() {
+  const path = window.location.pathname;
+  const sqlpadMatch = path.match(/^(\/sqlpad\/[^/]+)/);
+  if (sqlpadMatch) {
+    baseUrl(sqlpadMatch[1]);
+    return;
+  }
+  const numericMatch = path.match(/^\/(\d+)/);
+  if (numericMatch) {
+    baseUrl(`/sqlpad/${numericMatch[1]}`);
+  }
+})();
 
 declare global {
   interface Window {
