@@ -308,16 +308,28 @@ async function makeApp(config, models) {
   }
 
   if (fs.existsSync(indexTemplatePath)) {
-    const html = fs.readFileSync(indexTemplatePath, 'utf8');
-    const baseUrlHtml = html
-      .replace(/="\/assets/g, `="${baseUrl}/assets`)
-      .replace(/="\/stylesheets/g, `="${baseUrl}/stylesheets`)
-      .replace(/="\/javascripts/g, `="${baseUrl}/javascripts`)
-      .replace(/="\/images/g, `="${baseUrl}/images`)
-      .replace(/="\/favicon/g, `="${baseUrl}/favicon`)
-      .replace(/="\/fonts/g, `="${baseUrl}/fonts`)
-      .replace(/="\/static/g, `="${baseUrl}/static`);
-    app.use((req, res) => res.send(baseUrlHtml));
+    const htmlTemplate = fs.readFileSync(indexTemplatePath, 'utf8');
+
+    function buildHtml(effectiveBaseUrl) {
+      return htmlTemplate
+        .replace(/="\/assets/g, `="${effectiveBaseUrl}/assets`)
+        .replace(/="\/stylesheets/g, `="${effectiveBaseUrl}/stylesheets`)
+        .replace(/="\/javascripts/g, `="${effectiveBaseUrl}/javascripts`)
+        .replace(/="\/images/g, `="${effectiveBaseUrl}/images`)
+        .replace(/="\/favicon/g, `="${effectiveBaseUrl}/favicon`)
+        .replace(/="\/fonts/g, `="${effectiveBaseUrl}/fonts`)
+        .replace(/="\/static/g, `="${effectiveBaseUrl}/static`);
+    }
+
+    // When a numeric or /sqlpad/{id} path prefix was detected by the
+    // path-rewrite middleware, use it as the effective base so that asset
+    // URLs resolve back through the same prefix (and the middleware can
+    // rewrite them to the real static paths).  Fall back to the configured
+    // baseUrl for requests that arrived without a path prefix.
+    app.use((req, res) => {
+      const effectiveBaseUrl = req.sqlpadPathPrefix || baseUrl;
+      res.send(buildHtml(effectiveBaseUrl));
+    });
   } else {
     const msg = `No UI template detected. Build client/ and copy files to server/public/`;
     appLog.warn(msg);
